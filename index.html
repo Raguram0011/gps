@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Tourist AR Navigation Assistant</title>
+  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+  <link rel="stylesheet" href="https://unpkg.com/leaflet-routing-machine/dist/leaflet-routing-machine.css" />
+  <!-- AR.js -->
+  <script src="https://aframe.io/releases/1.2.0/aframe.min.js"></script>
+  <script src="https://cdn.rawgit.com/jeromeetienne/AR.js/2.2.1/aframe/build/aframe-ar.js"></script>
+</head>
+<body>
+  <!-- MAP -->
+  <div id="map"></div>
+
+  <!-- TOPBAR -->
+  <div id="topbar">
+    <div class="input-box">
+      <input type="text" id="source" placeholder="Enter source">
+      <div class="suggestions" id="sourceSuggestions"></div>
+    </div>
+    <div class="input-box">
+      <input type="text" id="destination" placeholder="Enter destination">
+      <div class="suggestions" id="destinationSuggestions"></div>
+    </div>
+    <select id="mode">
+      <option value="driving">Driving</option>
+      <option value="walking">Walking</option>
+      <option value="cycling">Cycling</option>
+    </select>
+    <button id="startNavBtn">Start</button>
+    <button id="stopNavBtn">Stop</button>
+    <button id="voiceCmdBtn" class="off">🎤 Jack OFF</button>
+    <button id="languageBtn">Language: EN</button>
+    <button id="toggleAR">🕶️ AR Mode</button>
+  </div>
+
+  <!-- EMERGENCY -->
+  <button id="emergencyBtn">🚨 Emergency</button>
+  <div id="emergencyTab">
+    <button id="closeEmergencyBtn">✖</button>
+    <h2>Emergency</h2>
+    <h4>Hospitals</h4>
+    <div id="hospitalList">Loading...</div>
+    <h4>Police</h4>
+    <div id="policeList">Loading...</div>
+  </div>
+
+  <!-- INFO PANEL -->
+  <div id="infoPanel">
+    <h3 id="routeInfo">Route Info</h3>
+    <div id="steps"></div>
+  </div>
+
+  <!-- LOCATE BUTTON -->
+  <button id="locateBtn">📍</button>
+
+  <!-- AR SCENE -->
+  <div id="arContainer" style="display:none;">
+    <a-scene embedded arjs="sourceType: webcam; debugUIEnabled: false;">
+      <!-- dynamic AR markers will be injected via ar.js -->
+      <a-entity id="arMarkers"></a-entity>
+    </a-scene>
+  </div>
+
+  <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+  <script src="https://unpkg.com/leaflet-routing-machine/dist/leaflet-routing-machine.js"></script>
+  <script src="app.js"></script>
+  <script src="ar.js"></script>
+</body>
+</html>
