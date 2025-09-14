@@ -21,7 +21,6 @@ function parseCommand(text) {
   if (cmd.includes("nearest police")) return { intent: "find", type: "police" };
 
   if (cmd.includes("traffic")) return { intent: "traffic" };
-  if (cmd.includes("ar mode")) return { intent: "toggle_ar" };
 
   return { intent: "unknown", text: cmd };
 }
