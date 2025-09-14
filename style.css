@@ -223,3 +223,48 @@ body, html {
 #sosBtn:active {
   transform: scale(1.05);
 }
+
+/* Make My Location buttons small and inline with inputs */
+#setSourceBtn, #setDestBtn {
+  padding: 4px 6px;       /* smaller padding */
+  font-size: 12px;        /* smaller text */
+  margin-left: 5px;       /* small gap from input */
+  vertical-align: middle; /* align with input box */
+  border-radius: 4px;     /* slightly rounded */
+  cursor: pointer;
+}
+
+/* Optional: different background color */
+#setSourceBtn {
+  background-color: #4CAF50; /* green */
+  color: white;
+  border: none;
+  
+}
+
+#setDestBtn {
+  background-color: #f44336; /* red */
+  color: white;
+  border: none;
+}
+
+/* On hover */
+#setSourceBtn:hover, #setDestBtn:hover {
+  opacity: 0.8;
+}
+/* Small location buttons */
+#setSourceBtn, #setDestBtn, #locateBtn {
+  font-size: 0.9em;
+  padding: 3px 6px;
+  margin-left: 5px;
+}
+#weatherPanel {
+  position: absolute;
+  top: 90px;
+  left: 10px;
+  background: rgba(255,255,255,0.9);
+  padding: 10px;
+  border-radius: 5px;
+  z-index: 1000;
+  width: 200px;
+}
