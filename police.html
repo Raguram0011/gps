@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Police SOS Dashboard</title>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <style>
+    body, html { 
+  margin: 0; 
+  padding: 0; 
+  font-family: 'Poppins', sans-serif; 
+  background: linear-gradient(135deg, #2196f3, #00bcd4); 
+  height: 100%; 
+  display: flex; 
+  flex-direction: column; 
+  color: white; 
+}
+
+header { 
+  text-align: center; 
+  padding: 15px; 
+  background: linear-gradient(135deg, #ff5722, #ff9800); 
+  font-size: 22px; 
+  font-weight: bold; 
+  box-shadow: 0 4px 8px rgba(0,0,0,0.3); 
+}
+
+#sosContainer { 
+  flex: 0; 
+  max-height: 300px; /* increase height */
+  min-height: 200px; 
+  overflow-y: auto; 
+  padding: 10px; 
+  margin: 10px 15px; 
+  background: rgba(255,255,255,0.15); 
+  border-radius: 12px; 
+}
+
+.sosItem { 
+  margin: 5px 0; 
+  padding: 8px; 
+  background: rgba(255,255,255,0.2); 
+  border-radius: 8px; 
+  display: flex; 
+  justify-content: space-between; 
+  align-items: center; 
+}
+
+.sosItem a { 
+  color: #fff; 
+  text-decoration: underline; 
+}
+
+.deleteBtn { 
+  background: #d32f2f; 
+  border: none; 
+  padding: 4px 8px; 
+  border-radius: 6px; 
+  cursor: pointer; 
+  font-weight: bold; 
+  color: white; 
+}
+
+#map { 
+  flex: 1; 
+  min-height: 400px; /* smaller than before */
+  margin: 10px 15px; 
+  border-radius: 12px; 
+  box-shadow: 0 4px 12px rgba(0,0,0,0.3); 
+}
+.leaflet-control-attribution {
+  display: none !important;
+}
+
+
+  </style>
+</head>
+<body>
+
+<header>🚨 Police SOS Dashboard 🚨</header>
+<div id="sosContainer">Loading SOS alerts...</div>
+<div id="map"></div>
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script>
+  const sosContainer = document.getElementById("sosContainer");
+  const map = L.map('map').setView([20.5937, 78.9629], 5);
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { attribution: '&copy; OpenStreetMap' }).addTo(map);
+
+  let markers = [];
+
+  function loadSOS() {
+    sosContainer.innerHTML = "";
+    // Clear existing markers
+    markers.forEach(m => map.removeLayer(m));
+    markers = [];
+
+    let sosLogs = JSON.parse(localStorage.getItem("sosLogs") || "[]");
+    if (sosLogs.length === 0) {
+      sosContainer.innerHTML = "No SOS alerts yet.";
+      return;
+    }
+
+    sosLogs.forEach((log, idx) => {
+      const item = document.createElement("div");
+      item.className = "sosItem";
+      item.innerHTML = `
+        <div>
+          🚨 <a href="https://maps.google.com/?q=${log.lat},${log.lng}" target="_blank">
+          (${log.lat.toFixed(5)}, ${log.lng.toFixed(5)})</a><br>
+          ${new Date(log.timestamp).toLocaleString()}
+        </div>
+        <button class="deleteBtn">Delete</button>
+      `;
+      // Delete button
+      item.querySelector(".deleteBtn").onclick = () => {
+        sosLogs.splice(idx, 1);
+        localStorage.setItem("sosLogs", JSON.stringify(sosLogs));
+        loadSOS();
+      };
+      sosContainer.appendChild(item);
+
+      // Add marker
+      const marker = L.marker([log.lat, log.lng]).addTo(map).bindPopup("SOS Location");
+      markers.push(marker);
+    });
+
+    // Fit map to markers
+    if (markers.length > 0) {
+      const group = new L.featureGroup(markers);
+      map.fitBounds(group.getBounds().pad(0.5));
+    }
+  }
+
+  // Load on page open
+  loadSOS();
+
+  // Poll every 5 seconds to show new SOS
+  setInterval(loadSOS, 5000);
+</script>
+
+</body>
+</html>
