@@ -2,7 +2,7 @@
 let map = L.map('map').setView([20.5937,78.9629],5);
 L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{attribution:'&copy; OpenStreetMap'}).addTo(map);
 
-let userMarker, sourceMarker, destMarker, currentRoute=null;
+let userMarker, sourceMarker, destMarker, currentRoute=null, currentPointer=null;
 let sourceCoords=null, destCoords=null;
 
 // ================== SPEECH ==================
@@ -17,14 +17,35 @@ function speak(text){
 if(navigator.geolocation){
   navigator.geolocation.watchPosition(pos=>{
     let lat=pos.coords.latitude,lng=pos.coords.longitude;
+
+    // User marker
     if(!userMarker){
       map.setView([lat,lng],14);
       userMarker=L.marker([lat,lng]).addTo(map);
       if(!sourceCoords) sourceCoords=[lat,lng];
     } else { userMarker.setLatLng([lat,lng]); }
-  });
+
+    // Moving current location pointer
+    updateCurrentPointer(lat,lng);
+
+  }, err=>console.error(err), { enableHighAccuracy: true });
 }
 document.getElementById("locateBtn").onclick=()=>{ if(userMarker) map.setView(userMarker.getLatLng(),15); };
+
+// ================== CURRENT POINTER ==================
+function updateCurrentPointer(lat, lng){
+  if(!currentPointer){
+    currentPointer = L.marker([lat,lng],{
+      icon:L.icon({
+        iconUrl:'https://maps.google.com/mapfiles/ms/icons/arrow.png',
+        iconSize:[32,32],
+        iconAnchor:[16,16]
+      })
+    }).addTo(map);
+  } else {
+    currentPointer.setLatLng([lat,lng]);
+  }
+}
 
 // ================== AUTOCOMPLETE ==================
 function setupAutocomplete(inputId,suggestionsId,isSource){
@@ -35,7 +56,9 @@ function setupAutocomplete(inputId,suggestionsId,isSource){
     fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${query}&limit=5`).then(r=>r.json()).then(data=>{
       box.innerHTML='';
       data.forEach(place=>{
-        const div=document.createElement("div"); div.className="suggestion-item"; div.textContent=place.display_name;
+        const div=document.createElement("div");
+        div.className="suggestion-item";
+        div.textContent=place.display_name;
         div.onclick=()=>{
           input.value=place.display_name; box.style.display='none';
           const coords=[+place.lat,+place.lon];
@@ -64,7 +87,7 @@ async function showRoute(traffic=false){
   if(currentRoute) map.removeControl(currentRoute);
 
   if(traffic){
-    const apiKey="YOUR_ORS_API_KEY"; // Replace with OpenRouteService API key
+    const apiKey="YOUR_ORS_API_KEY"; // Replace with your OpenRouteService API key
     const url=`https://api.openrouteservice.org/v2/directions/driving-car?api_key=${apiKey}&start=${sourceCoords[1]},${sourceCoords[0]}&end=${destCoords[1]},${destCoords[0]}`;
     const res=await fetch(url);
     const data=await res.json();
@@ -107,7 +130,8 @@ document.getElementById("languageBtn").onclick=()=>{
   document.getElementById("languageBtn").textContent=language==='en-US'?'Language: EN':'Language: TA';
 };
 
-// ================== EMERGENCY ==================
+// ================== EMERGENCY REAL-TIME ==================
+let emergencyInterval=null;
 async function fetchEmergencyPlaces(type, containerId){
   if(!userMarker){ document.getElementById(containerId).innerHTML="<p>Location not available</p>"; return; }
   const {lat,lng}=userMarker.getLatLng();
@@ -128,19 +152,27 @@ async function fetchEmergencyPlaces(type, containerId){
     addARMarkers(type,data.elements);
   }catch(e){ document.getElementById(containerId).innerHTML="<p>Error fetching "+type+"</p>"; console.error(e);}
 }
-
 document.getElementById("emergencyBtn").onclick=()=>{
   const tab=document.getElementById("emergencyTab");
-  if(tab.style.display==="block"){ tab.style.display="none"; }
-  else{
+  if(tab.style.display==="block"){ 
+    tab.style.display="none"; 
+    if(emergencyInterval) clearInterval(emergencyInterval);
+  } else {
     tab.style.display="block";
     document.getElementById("hospitalList").innerHTML="Loading...";
     document.getElementById("policeList").innerHTML="Loading...";
     fetchEmergencyPlaces("hospital","hospitalList");
     fetchEmergencyPlaces("police","policeList");
+    emergencyInterval=setInterval(()=>{
+      fetchEmergencyPlaces("hospital","hospitalList");
+      fetchEmergencyPlaces("police","policeList");
+    },10000); // refresh every 10 sec
   }
 };
-document.getElementById("closeEmergencyBtn").onclick=()=>document.getElementById("emergencyTab").style.display='none';
+document.getElementById("closeEmergencyBtn").onclick=()=>{
+  document.getElementById("emergencyTab").style.display='none';
+  if(emergencyInterval) clearInterval(emergencyInterval);
+};
 
 // ================== JACK VOICE ASSISTANT ==================
 let recognition=null,jackOn=false;
@@ -165,10 +197,15 @@ if('webkitSpeechRecognition' in window || 'SpeechRecognition' in window){
       case "stop": document.getElementById("stopNavBtn").click(); break;
       case "set_source": setPlace(intent.place,true); break;
       case "set_destination": setPlace(intent.place,false); break;
-      case "reroute": showRoute(true); break;
+      case "reroute":
+      case "traffic":
+        if(sourceCoords && destCoords){
+          if(currentRoute) map.removeControl(currentRoute);
+          showRoute(true);
+        } else speak("Please set source and destination first");
+        break;
       case "emergency": document.getElementById("emergencyBtn").click(); break;
       case "find": speak(`Finding nearest ${intent.type}`); fetchEmergencyPlaces(intent.type,intent.type+"List"); break;
-      case "traffic": showRoute(true); break;
       case "toggle_ar": document.getElementById("toggleAR").click(); break;
       default: speak("Sorry, I did not understand"); break;
     }
