@@ -14,15 +14,13 @@ function parseCommand(text) {
   m = cmd.match(/destination(?: is| set to)? (.+)/);
   if (m) return { intent: "set_destination", place: m[1] };
 
-  if (cmd.includes("reroute") || cmd.includes("change route"))
-    return { intent: "reroute" };
+  if (cmd.includes("reroute") || cmd.includes("change route")) return { intent: "reroute" };
 
   if (cmd.includes("emergency")) return { intent: "emergency" };
   if (cmd.includes("nearest hospital")) return { intent: "find", type: "hospital" };
   if (cmd.includes("nearest police")) return { intent: "find", type: "police" };
 
   if (cmd.includes("traffic")) return { intent: "traffic" };
-
   if (cmd.includes("ar mode")) return { intent: "toggle_ar" };
 
   return { intent: "unknown", text: cmd };
