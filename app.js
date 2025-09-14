@@ -25,8 +25,6 @@ function updateUserLocation(lat, lng) {
     userMarker.setLatLng([lat, lng]);
   }
   updateCurrentPointer(lat, lng);
-  
-  // Update weather in real-time
   updateWeather(lat, lng);
 }
 
@@ -36,8 +34,7 @@ setInterval(() => {
     const { lat, lng } = userMarker.getLatLng();
     updateWeather(lat, lng);
   }
-}, 60000); // 60000 ms = 1 minute
-
+}, 60000);
 
 if (navigator.geolocation) {
   navigator.geolocation.watchPosition(
@@ -91,52 +88,10 @@ async function updateWeather(lat, lon) {
   }
 }
 
-// Call whenever user location updates
-function updateUserLocation(lat, lng) {
-  if (!userMarker) {
-    userMarker = L.marker([lat, lng]).addTo(map).bindPopup("📍 You are here").openPopup();
-    map.setView([lat, lng], 15);
-    if (!sourceCoords) sourceCoords = [lat, lng];
-  } else {
-    userMarker.setLatLng([lat, lng]);
-  }
-  updateCurrentPointer(lat, lng);
-  updateWeather(lat, lng); // update weather in navbar
-}
-
-
-
-// Function to update weather every 30 seconds
-function startWeatherUpdates() {
-  if (!navigator.geolocation) {
-    weatherPanel.innerHTML = "Location not available";
-    return;
-  }
-  navigator.geolocation.getCurrentPosition(
-    (pos) => {
-      const lat = pos.coords.latitude;
-      const lon = pos.coords.longitude;
-      fetchWeather(lat, lon);
-      setInterval(() => fetchWeather(lat, lon), 30000); // update every 30 sec
-    },
-    (err) => {
-      console.error(err);
-      weatherPanel.innerHTML = "Unable to fetch weather";
-    },
-    { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
-  );
-}
-
-// Start fetching weather
-startWeatherUpdates();
-
-
-
-
 // ================== AUTOCOMPLETE ==================
 function setupAutocomplete(inputId, suggestionsId, isSource) {
   const input = document.getElementById(inputId),
-    box = document.getElementById(suggestionsId);
+        box = document.getElementById(suggestionsId);
 
   input.addEventListener("input", () => {
     let query = input.value.trim();
@@ -223,7 +178,7 @@ async function showRoute(traffic = false) {
   if (currentRoute) map.removeControl(currentRoute);
 
   if (traffic) {
-    const apiKey = "eyJvcmciOiI1YjNjZTM1OTc4NTExMTAwMDFjZjYyNDgiLCJpZCI6ImUzOTdjN2I3MGI3NzQ5NWRiNjhhMWY0NzgzOTdiMmNmIiwiaCI6Im11cm11cjY0In0="; // Replace with your OpenRouteService API key
+    const apiKey = "YOUR_OPENROUTESERVICE_API_KEY"; 
     const url = `https://api.openrouteservice.org/v2/directions/driving-car?api_key=${apiKey}&start=${sourceCoords[1]},${sourceCoords[0]}&end=${destCoords[1]},${destCoords[0]}`;
     const res = await fetch(url);
     const data = await res.json();
@@ -251,7 +206,7 @@ async function showRoute(traffic = false) {
     currentRoute.on('routesfound', e => {
       let route = e.routes[0], summary = route.summary;
       let dist = (summary.totalDistance / 1000).toFixed(2),
-        time = (summary.totalTime / 60).toFixed(1);
+          time = (summary.totalTime / 60).toFixed(1);
       document.getElementById("routeInfo").innerHTML = `Distance: ${dist} km | Time: ${time} mins`;
       let stepsHtml = "<ol>";
       route.instructions.forEach(instr => stepsHtml += `<li>${instr.text}</li>`);
@@ -351,7 +306,7 @@ if ('webkitSpeechRecognition' in window) {
     recognizing = true;
     const btn = document.getElementById("voiceCmdBtn");
     btn.classList.remove("off");
-    btn.textContent = "🎤 Jack ON";  // Update text
+    btn.textContent = "🎤 Jack ON";
     speak("Jack is ON");
   };
 
@@ -359,7 +314,7 @@ if ('webkitSpeechRecognition' in window) {
     recognizing = false;
     const btn = document.getElementById("voiceCmdBtn");
     btn.classList.add("off");
-    btn.textContent = "🎤 Jack OFF";  // Update text
+    btn.textContent = "🎤 Jack OFF";
     speak("Jack Turned OFF");
   };
 
@@ -376,17 +331,13 @@ document.getElementById("voiceCmdBtn").onclick = () => {
     alert("Speech recognition not supported");
     return;
   }
-
   if (recognizing) recognition.stop();
   else recognition.start();
 };
 
-
 async function handleVoiceCommand(cmd) {
   switch (cmd.intent) {
-    case "start":
-      showRoute(false);
-      break;
+    case "start": showRoute(false); break;
     case "stop":
       if (currentRoute) {
         map.removeControl(currentRoute);
@@ -395,74 +346,68 @@ async function handleVoiceCommand(cmd) {
         speak("Navigation stopped");
       }
       break;
-    case "set_source":
-      document.getElementById("setSourceBtn").click();
-      break;
-    case "set_destination":
-      document.getElementById("setDestBtn").click();
-      break;
-    case "reroute":
-      showRoute(false);
-      break;
-    case "emergency":
-      document.getElementById("emergencyBtn").click();
-      break;
+    case "set_source": document.getElementById("setSourceBtn").click(); break;
+    case "set_destination": document.getElementById("setDestBtn").click(); break;
+    case "reroute": showRoute(false); break;
+    case "emergency": document.getElementById("emergencyBtn").click(); break;
     case "find":
       fetchEmergencyPlaces(cmd.type, cmd.type === "hospital" ? "hospitalList" : "policeList");
       document.getElementById("emergencyTab").style.display = "block";
       break;
-    case "traffic":
-      showRoute(true);
-      break;
-    default:
-      speak("Sorry, I did not understand");
+    case "traffic": showRoute(true); break;
+    default: speak("Sorry, I did not understand");
   }
 }
 
-// ================== SOS FEATURE ==================
+// ================== SOS FEATURE (UNIFIED) ==================
+const sosChannel = new BroadcastChannel('sos_channel');
+
 document.getElementById("sosBtn").addEventListener("click", async () => {
-  if (!navigator.geolocation) {
-    alert("Geolocation not supported by this browser.");
-    return;
-  }
+  if (!navigator.geolocation) { alert("Geolocation not supported"); return; }
 
-  navigator.geolocation.getCurrentPosition(
-    (position) => {
-      const lat = position.coords.latitude;
-      const lng = position.coords.longitude;
+  navigator.geolocation.getCurrentPosition((pos) => {
+    const lat = pos.coords.latitude;
+    const lng = pos.coords.longitude;
+    const timestamp = new Date().toISOString();
 
-      const msg = `🚨 SOS ALERT 🚨
+    const msg = `🚨 SOS ALERT 🚨
 I need urgent help!
-📍 Location: https://maps.google.com/?q=${lat},${lng}`;
+📍 Location: https://maps.google.com/?q=${lat},${lng}
+Time: ${new Date(timestamp).toLocaleString()}`;
 
-      // 👉 Add all relatives' WhatsApp numbers (with country code, no +)
-      const relatives = ["919342991366"];
+    // 1️⃣ WhatsApp alert
+    const relatives = ["919342991366"];
+    relatives.forEach((number, index) => {
+      setTimeout(() => {
+        window.open(`https://wa.me/${number}?text=${encodeURIComponent(msg)}`, "_blank");
+      }, index * 1000);
+    });
 
-      relatives.forEach((number, index) => {
-        setTimeout(() => {
-          window.open(`https://wa.me/${number}?text=${encodeURIComponent(msg)}`, "_blank");
-        }, index * 1000); // gap to avoid popup block
-      });
-    },
-    (err) => {
-      console.error("SOS location error:", err);
-      alert("Unable to fetch your location.");
-    },
-    { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
-  );
+    // 2️⃣ Save to localStorage
+    const sosLogs = JSON.parse(localStorage.getItem("sosLogs") || "[]");
+    sosLogs.push({ lat, lng, timestamp });
+    localStorage.setItem("sosLogs", JSON.stringify(sosLogs));
+
+    // 3️⃣ Broadcast to police.html
+    sosChannel.postMessage({ lat, lng, timestamp });
+
+    alert("SOS alert sent!");
+  }, (err) => {
+    console.error("SOS error:", err);
+    alert("Unable to fetch location.");
+  }, { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 });
 });
 
+// ================== MAP COORDS DISPLAY ==================
 function updateCoords(lat, lng) {
   document.getElementById('coords').textContent = `Lat: ${lat.toFixed(5)}, Lng: ${lng.toFixed(5)}`;
 }
 
-// If using Leaflet map
 map.on('move', () => {
   const center = map.getCenter();
   updateCoords(center.lat, center.lng);
 });
 
-// Optional: Real GPS from device
 if (navigator.geolocation) {
   navigator.geolocation.watchPosition((position) => {
     updateCoords(position.coords.latitude, position.coords.longitude);
