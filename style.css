@@ -172,11 +172,6 @@ body, html {
 }
 
 /* Buttons */
-#languageBtn {
-  background: #009688;
-  color: white;
-}
-
 #voiceCmdBtn {
   background: #009688;
   color: white;
@@ -202,13 +197,29 @@ body, html {
   box-shadow: 0 2px 6px rgba(0, 0, 0, 0.4);
 }
 
-/* AR container */
-#arContainer {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  z-index: 9999;
-  background: black;
+/* SOS Button */
+#sosBtn {
+  position: absolute;
+  bottom: 100px;
+  left: 20px;
+  background: linear-gradient(135deg, #ff0000, #b71c1c);
+  color: white;
+  font-size: 18px;
+  font-weight: bold;
+  border: none;
+  padding: 14px 20px;
+  border-radius: 50%;
+  cursor: pointer;
+  z-index: 10000;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.4);
+  transition: transform 0.2s, background 0.3s;
+}
+
+#sosBtn:hover {
+  transform: scale(1.15);
+  background: linear-gradient(135deg, #ff3333, #d32f2f);
+}
+
+#sosBtn:active {
+  transform: scale(1.05);
 }
