@@ -25,6 +25,9 @@ function updateUserLocation(lat, lng) {
     userMarker.setLatLng([lat, lng]);
   }
   updateCurrentPointer(lat, lng);
+
+  // Update weather whenever location updates
+  updateWeather(lat, lng);
 }
 
 if (navigator.geolocation) {
@@ -57,6 +60,26 @@ function updateCurrentPointer(lat, lng) {
     }).addTo(map);
   } else {
     currentPointer.setLatLng([lat, lng]);
+  }
+}
+
+// ================== WEATHER ==================
+const weatherApiKey = "d187c7aee8ac4f8f843200759251409";//weather api
+async function updateWeather(lat, lng) {
+  const weatherInfo = document.getElementById("weatherInfo");
+  weatherInfo.innerText = "Fetching weather...";
+  try {
+    const res = await fetch(`https://api.openweathermap.org/data/2.5/weather?lat=${lat}&lon=${lng}&units=metric&appid=${weatherApiKey}`);
+    if (!res.ok) throw new Error("Weather API error");
+    const data = await res.json();
+    const temp = data.main.temp.toFixed(1);
+    const desc = data.weather[0].description;
+    const humidity = data.main.humidity;
+    const wind = data.wind.speed;
+    weatherInfo.innerHTML = `🌡 Temp: ${temp}°C | 💧 Humidity: ${humidity}% | 🌬 Wind: ${wind} m/s | ${desc}`;
+  } catch (e) {
+    console.error(e);
+    weatherInfo.innerText = "Unable to fetch weather";
   }
 }
 
@@ -150,7 +173,7 @@ async function showRoute(traffic = false) {
   if (currentRoute) map.removeControl(currentRoute);
 
   if (traffic) {
-    const apiKey = "YOUR_ORS_API_KEY"; // Replace with your OpenRouteService API key
+    const apiKey = "eyJvcmciOiI1YjNjZTM1OTc4NTExMTAwMDFjZjYyNDgiLCJpZCI6ImUzOTdjN2I3MGI3NzQ5NWRiNjhhMWY0NzgzOTdiMmNmIiwiaCI6Im11cm11cjY0In0="; // Replace with your OpenRouteService API key
     const url = `https://api.openrouteservice.org/v2/directions/driving-car?api_key=${apiKey}&start=${sourceCoords[1]},${sourceCoords[0]}&end=${destCoords[1]},${destCoords[0]}`;
     const res = await fetch(url);
     const data = await res.json();
@@ -198,18 +221,6 @@ document.getElementById("stopNavBtn").onclick = () => {
     speak("Navigation stopped");
   }
 };
-
-// ================== WEATHER ==================
-async function updateWeather(lat,lng){
-  const apiKey="d187c7aee8ac4f8f843200759251409"; // replace with your API key
-  try{
-    const res=await fetch(`https://api.openweathermap.org/data/2.5/weather?lat=${lat}&lon=${lng}&units=metric&appid=${apiKey}`);
-    const data=await res.json();
-    if(data){
-      document.getElementById("weatherInfo").innerHTML=`${data.name}, ${data.weather[0].description}, 🌡 ${data.main.temp}°C`;
-    }
-  }catch(err){ console.error("Weather error:",err); }
-}
 
 // ================== EMERGENCY REAL-TIME ==================
 let emergencyInterval = null;
@@ -362,7 +373,7 @@ I need urgent help!
 📍 Location: https://maps.google.com/?q=${lat},${lng}`;
 
       // 👉 Add all relatives' WhatsApp numbers (with country code, no +)
-      const relatives = ["916381719256"];
+      const relatives = ["919342991366"];
 
       relatives.forEach((number, index) => {
         setTimeout(() => {
