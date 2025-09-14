@@ -6,6 +6,9 @@
   <link rel="stylesheet" href="style.css">
   <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
   <link rel="stylesheet" href="https://unpkg.com/leaflet-routing-machine/dist/leaflet-routing-machine.css" />
+  <style>
+
+  </style>
 </head>
 <body>
 
@@ -15,10 +18,12 @@
 <div id="topbar">
   <div style="position:relative;">
     <input type="text" id="source" placeholder="Enter source">
+    <button id="setSourceBtn">📍</button>
     <div class="suggestions" id="sourceSuggestions"></div>
   </div>
   <div style="position:relative;">
     <input type="text" id="destination" placeholder="Enter destination">
+    <button id="setDestBtn">📍</button>
     <div class="suggestions" id="destinationSuggestions"></div>
   </div>
   <select id="mode">
@@ -29,6 +34,12 @@
   <button id="startNavBtn">Start</button>
   <button id="stopNavBtn">Stop</button>
   <button id="voiceCmdBtn" class="off">🎤 Jack OFF</button>
+</div>
+
+<!-- Weather -->
+<div id="weatherPanel">
+  <h3>🌤 Weather</h3>
+  <p id="weatherInfo">Loading...</p>
 </div>
 
 <!-- Emergency -->
