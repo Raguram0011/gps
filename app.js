@@ -413,3 +413,41 @@ if (navigator.geolocation) {
     updateCoords(position.coords.latitude, position.coords.longitude);
   });
 }
+
+
+// Toggle menu
+document.getElementById("mainBtn").addEventListener("click", () => {
+  const menu = document.getElementById("menuBtns");
+  menu.style.display = menu.style.display === "flex" ? "none" : "flex";
+});
+
+// Handle POI search
+document.querySelectorAll(".poiBtn").forEach(btn => {
+  btn.addEventListener("click", () => {
+    let type = btn.dataset.type;
+    if (!window.userMarker) {
+      alert("User location not found!");
+      return;
+    }
+
+    let userLatLng = window.userMarker.getLatLng();
+    let query = `[out:json];
+      node(around:10000, ${userLatLng.lat}, ${userLatLng.lng})[amenity=${type}];
+      out;`;
+
+    fetch("https://overpass-api.de/api/interpreter", {
+      method: "POST",
+      body: query
+    })
+    .then(res => res.json())
+    .then(data => {
+      let count = data.elements.length;
+      let msg = `There are ${count} ${type}s within 10 kilometers.`;
+      alert(msg);
+
+      // Voice output
+      let speech = new SpeechSynthesisUtterance(msg);
+      speechSynthesis.speak(speech);
+    });
+  });
+}); 
