@@ -18,11 +18,18 @@
 
   <!-- Center: Inputs & buttons -->
   <div class="top-center">
+  <div class="input-wrapper">
     <input type="text" id="source" placeholder="Enter source">
-    <button id="setSourceBtn">📍</button>
+    <div id="sourceSuggestions" class="suggestions"></div>
+  </div>
+  <button id="setSourceBtn">📍</button>
 
+  <div class="input-wrapper">
     <input type="text" id="destination" placeholder="Enter destination">
-    <button id="setDestBtn">📍</button>
+    <div id="destinationSuggestions" class="suggestions"></div>
+  </div>
+  <button id="setDestBtn">📍</button>
+
 
     <select id="mode">
       <option value="driving">Driving</option>
@@ -34,6 +41,7 @@
     <button id="stopNavBtn">Stop</button>
     <button id="voiceCmdBtn" class="off">🎤 Jack OFF</button>
   </div>
+
 
   <!-- Right: Weather panel -->
   <div id="weatherPanel">
