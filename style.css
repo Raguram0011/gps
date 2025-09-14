@@ -21,7 +21,7 @@ body, html {
   background: linear-gradient(135deg, #3f51b5, #00bcd4);
   padding: 12px;
   display: flex;
-  justify-content: space-between; /* Left, Center, Right */
+  justify-content: space-between;
   align-items: center;
   flex-wrap: wrap;
   box-shadow: 0 4px 12px rgba(0,0,0,0.25);
@@ -89,7 +89,7 @@ body, html {
   display: flex;
   align-items: center;
   gap: 6px;
-  margin-right: 20px; /* slightly left from extreme right */
+  margin-right: 20px;
 }
 
 #weatherPanel img {
@@ -287,18 +287,34 @@ body, html {
   #emergencyBtn { font-size: 14px; padding: 8px 12px; top: 60px; }
 }
 
+/* ================== MOBILE LAYOUT SPECIFIC ================== */
 @media (max-width: 600px) {
-  #topbar { flex-direction: column; align-items: flex-start; }
-  .top-center { width: 100%; justify-content: flex-start; margin: 5px 0; }
-  #topbar input, #topbar select, #topbar button { width: 100%; margin-bottom: 5px; }
-  #weatherPanel { width: 100%; justify-content: flex-start; margin-top: 5px; }
+  #topbar {
+    flex-direction: column;
+    align-items: flex-start;
+    row-gap: 8px;
+  }
+
+  /* Row 1: Coordinates + Weather */
+  #coords { order: 1; width: 100%; font-size: 12px; margin-bottom: 4px; }
+  #weatherPanel { order: 2; width: 100%; justify-content: flex-start; margin: 0 0 4px 0; }
+
+  /* Row 2: Source/Destination/My Location */
+  .top-center { order: 3; width: 100%; flex-wrap: wrap; gap: 4px; }
+
+  /* Row 3: Start/Stop/Jack buttons */
+  #startNavBtn, #stopNavBtn, #voiceCmdBtn { width: 32%; min-width: unset; margin: 2px 1%; }
+
+  /* Emergency button below nav bar */
+  #emergencyBtn { position: relative; top: 0; left: 0; width: 100%; margin-top: 4px; }
+
+  #topbar input, #topbar select, #topbar button { width: 100%; font-size: 12px; padding: 6px; }
 }
 
+/* Very small devices */
 @media (max-width: 480px) {
-  #topbar input, #topbar select, #topbar button { font-size: 12px; padding: 5px; }
-  #coords { font-size: 12px; }
-  #weatherPanel { width: 160px; font-size: 12px; padding: 6px; }
-  #sosBtn, #locateBtn { font-size: 20px; padding: 6px; }
-  #emergencyTab { width: 95%; top: 70px; }
-  #emergencyBtn { font-size: 12px; padding: 6px 10px; }
+  #coords { font-size: 11px; }
+  #weatherPanel { font-size: 11px; padding: 4px; }
+  #topbar input, #topbar select, #topbar button { font-size: 11px; padding: 4px; }
+  #startNavBtn, #stopNavBtn, #voiceCmdBtn { font-size: 11px; padding: 4px; }
 }
