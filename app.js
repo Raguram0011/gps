@@ -25,10 +25,19 @@ function updateUserLocation(lat, lng) {
     userMarker.setLatLng([lat, lng]);
   }
   updateCurrentPointer(lat, lng);
-
-  // Update weather whenever location updates
+  
+  // Update weather in real-time
   updateWeather(lat, lng);
 }
+
+// Update weather every 60 seconds automatically
+setInterval(() => {
+  if (userMarker) {
+    const { lat, lng } = userMarker.getLatLng();
+    updateWeather(lat, lng);
+  }
+}, 60000); // 60000 ms = 1 minute
+
 
 if (navigator.geolocation) {
   navigator.geolocation.watchPosition(
@@ -64,24 +73,65 @@ function updateCurrentPointer(lat, lng) {
 }
 
 // ================== WEATHER ==================
-const weatherApiKey = "d187c7aee8ac4f8f843200759251409";//weather api
-async function updateWeather(lat, lng) {
-  const weatherInfo = document.getElementById("weatherInfo");
-  weatherInfo.innerText = "Fetching weather...";
+const WEATHER_API_KEY = "babf7185d1e84dcc939204740251409";
+
+async function updateWeather(lat, lon) {
   try {
-    const res = await fetch(`https://api.openweathermap.org/data/2.5/weather?lat=${lat}&lon=${lng}&units=metric&appid=${weatherApiKey}`);
-    if (!res.ok) throw new Error("Weather API error");
-    const data = await res.json();
-    const temp = data.main.temp.toFixed(1);
-    const desc = data.weather[0].description;
-    const humidity = data.main.humidity;
-    const wind = data.wind.speed;
-    weatherInfo.innerHTML = `🌡 Temp: ${temp}°C | 💧 Humidity: ${humidity}% | 🌬 Wind: ${wind} m/s | ${desc}`;
+    const resp = await fetch(`https://api.weatherapi.com/v1/current.json?key=${WEATHER_API_KEY}&q=${lat},${lon}`);
+    if (!resp.ok) throw new Error("Failed to fetch weather");
+    const data = await resp.json();
+
+    document.getElementById("weatherInfo").innerHTML = `
+      ${data.current.temp_c}°C, ${data.current.condition.text}
+      <img src="https:${data.current.condition.icon}" alt="weather">
+    `;
   } catch (e) {
     console.error(e);
-    weatherInfo.innerText = "Unable to fetch weather";
+    document.getElementById("weatherInfo").innerText = "Unable to fetch weather";
   }
 }
+
+// Call whenever user location updates
+function updateUserLocation(lat, lng) {
+  if (!userMarker) {
+    userMarker = L.marker([lat, lng]).addTo(map).bindPopup("📍 You are here").openPopup();
+    map.setView([lat, lng], 15);
+    if (!sourceCoords) sourceCoords = [lat, lng];
+  } else {
+    userMarker.setLatLng([lat, lng]);
+  }
+  updateCurrentPointer(lat, lng);
+  updateWeather(lat, lng); // update weather in navbar
+}
+
+
+
+// Function to update weather every 30 seconds
+function startWeatherUpdates() {
+  if (!navigator.geolocation) {
+    weatherPanel.innerHTML = "Location not available";
+    return;
+  }
+  navigator.geolocation.getCurrentPosition(
+    (pos) => {
+      const lat = pos.coords.latitude;
+      const lon = pos.coords.longitude;
+      fetchWeather(lat, lon);
+      setInterval(() => fetchWeather(lat, lon), 30000); // update every 30 sec
+    },
+    (err) => {
+      console.error(err);
+      weatherPanel.innerHTML = "Unable to fetch weather";
+    },
+    { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
+  );
+}
+
+// Start fetching weather
+startWeatherUpdates();
+
+
+
 
 // ================== AUTOCOMPLETE ==================
 function setupAutocomplete(inputId, suggestionsId, isSource) {
@@ -290,6 +340,7 @@ document.getElementById("closeEmergencyBtn").onclick = () => {
 // ================== VOICE COMMANDS ==================
 let recognizing = false;
 let recognition;
+
 if ('webkitSpeechRecognition' in window) {
   recognition = new webkitSpeechRecognition();
   recognition.lang = language;
@@ -298,13 +349,20 @@ if ('webkitSpeechRecognition' in window) {
 
   recognition.onstart = () => {
     recognizing = true;
-    document.getElementById("voiceCmdBtn").classList.remove("off");
-    speak("Jack is now listening");
+    const btn = document.getElementById("voiceCmdBtn");
+    btn.classList.remove("off");
+    btn.textContent = "🎤 Jack ON";  // Update text
+    speak("Jack is ON");
   };
+
   recognition.onend = () => {
     recognizing = false;
-    document.getElementById("voiceCmdBtn").classList.add("off");
+    const btn = document.getElementById("voiceCmdBtn");
+    btn.classList.add("off");
+    btn.textContent = "🎤 Jack OFF";  // Update text
+    speak("Jack Turned OFF");
   };
+
   recognition.onresult = e => {
     let transcript = e.results[e.results.length - 1][0].transcript.trim();
     console.log("Voice:", transcript);
@@ -314,10 +372,15 @@ if ('webkitSpeechRecognition' in window) {
 }
 
 document.getElementById("voiceCmdBtn").onclick = () => {
-  if (!recognition) { alert("Speech recognition not supported"); return; }
+  if (!recognition) {
+    alert("Speech recognition not supported");
+    return;
+  }
+
   if (recognizing) recognition.stop();
   else recognition.start();
 };
+
 
 async function handleVoiceCommand(cmd) {
   switch (cmd.intent) {
@@ -388,3 +451,20 @@ I need urgent help!
     { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
   );
 });
+
+function updateCoords(lat, lng) {
+  document.getElementById('coords').textContent = `Lat: ${lat.toFixed(5)}, Lng: ${lng.toFixed(5)}`;
+}
+
+// If using Leaflet map
+map.on('move', () => {
+  const center = map.getCenter();
+  updateCoords(center.lat, center.lng);
+});
+
+// Optional: Real GPS from device
+if (navigator.geolocation) {
+  navigator.geolocation.watchPosition((position) => {
+    updateCoords(position.coords.latitude, position.coords.longitude);
+  });
+}
