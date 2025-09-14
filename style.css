@@ -43,7 +43,9 @@ body, html {
   gap: 8px;
   justify-content: center;
   align-items: center;
+  position: relative; /* Add this */
 }
+
 
 #topbar input {
   padding: 8px;
@@ -108,7 +110,7 @@ body, html {
   overflow-y: auto;
   display: none;
   z-index: 10001;
-  width: 100%;
+  width: 180px;
   box-shadow: 0 2px 6px rgba(0,0,0,0.5);
 }
 
@@ -317,4 +319,27 @@ body, html {
   #weatherPanel { font-size: 11px; padding: 4px; }
   #topbar input, #topbar select, #topbar button { font-size: 11px; padding: 4px; }
   #startNavBtn, #stopNavBtn, #voiceCmdBtn { font-size: 11px; padding: 4px; }
+}
+
+.input-wrapper {
+  position: relative;
+  display: inline-block; /* so the suggestions width matches input */
+}
+
+.suggestions {
+  position: absolute;
+  top: 100%; /* directly below input */
+  left: 0;
+  width: 100%;
+  z-index: 10001;
+  display: none;
+  max-height: 200px;
+  overflow-y: auto;
+  background: #37474f;
+  border-radius: 8px;
+  border: 1px solid #444;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.5);
+}
+.leaflet-control-attribution {
+  display: none !important;
 }
