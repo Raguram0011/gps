@@ -6,9 +6,6 @@
   <link rel="stylesheet" href="style.css">
   <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
   <link rel="stylesheet" href="https://unpkg.com/leaflet-routing-machine/dist/leaflet-routing-machine.css" />
-  <style>
-
-  </style>
 </head>
 <body>
 
@@ -16,31 +13,35 @@
 
 <!-- Topbar -->
 <div id="topbar">
-  <div style="position:relative;">
+  <!-- Left: Coordinates -->
+  <div id="coords">Lat: 0.000, Lng: 0.000</div>
+
+  <!-- Center: Inputs & buttons -->
+  <div class="top-center">
     <input type="text" id="source" placeholder="Enter source">
     <button id="setSourceBtn">📍</button>
-    <div class="suggestions" id="sourceSuggestions"></div>
-  </div>
-  <div style="position:relative;">
+
     <input type="text" id="destination" placeholder="Enter destination">
     <button id="setDestBtn">📍</button>
-    <div class="suggestions" id="destinationSuggestions"></div>
+
+    <select id="mode">
+      <option value="driving">Driving</option>
+      <option value="walking">Walking</option>
+      <option value="cycling">Cycling</option>
+    </select>
+
+    <button id="startNavBtn">Start</button>
+    <button id="stopNavBtn">Stop</button>
+    <button id="voiceCmdBtn" class="off">🎤 Jack OFF</button>
   </div>
-  <select id="mode">
-    <option value="driving">Driving</option>
-    <option value="walking">Walking</option>
-    <option value="cycling">Cycling</option>
-  </select>
-  <button id="startNavBtn">Start</button>
-  <button id="stopNavBtn">Stop</button>
-  <button id="voiceCmdBtn" class="off">🎤 Jack OFF</button>
+
+  <!-- Right: Weather panel -->
+  <div id="weatherPanel">
+    <img id="weatherIcon" src="" alt="Weather">
+    <span id="weatherInfo">Loading...</span>
+  </div>
 </div>
 
-<!-- Weather -->
-<div id="weatherPanel">
-  <h3>🌤 Weather</h3>
-  <p id="weatherInfo">Loading...</p>
-</div>
 
 <!-- Emergency -->
 <button id="emergencyBtn">🚨 Emergency</button>
