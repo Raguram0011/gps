@@ -1,3 +1,4 @@
+/* ================== BASE STYLES ================== */
 body, html {
   margin: 0;
   padding: 0;
@@ -11,7 +12,7 @@ body, html {
   width: 100%;
 }
 
-/* Topbar */
+/* ================== TOPBAR ================== */
 #topbar {
   position: fixed;
   top: 0;
@@ -20,12 +21,28 @@ body, html {
   background: linear-gradient(135deg, #3f51b5, #00bcd4);
   padding: 12px;
   display: flex;
-  gap: 8px;
+  justify-content: space-between; /* Left, Center, Right */
+  align-items: center;
   flex-wrap: wrap;
-  justify-content: center;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.25);
   z-index: 10000;
   color: white;
+}
+
+/* ================== LEFT: Coordinates ================== */
+#coords {
+  font-size: 14px;
+  font-weight: bold;
+  min-width: 120px;
+}
+
+/* ================== CENTER: Inputs & Buttons ================== */
+.top-center {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  justify-content: center;
+  align-items: center;
 }
 
 #topbar input {
@@ -33,7 +50,9 @@ body, html {
   border-radius: 8px;
   border: none;
   width: 180px;
+  max-width: 100%;
   outline: none;
+  box-sizing: border-box;
 }
 
 #topbar button, #topbar select {
@@ -60,7 +79,25 @@ body, html {
   font-weight: bold;
 }
 
-/* Suggestions */
+/* ================== RIGHT: Weather Panel ================== */
+#weatherPanel {
+  background: rgba(255,255,255,0.2);
+  padding: 6px 10px;
+  border-radius: 6px;
+  color: white;
+  font-size: 14px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-right: 20px; /* slightly left from extreme right */
+}
+
+#weatherPanel img {
+  width: 24px;
+  height: 24px;
+}
+
+/* ================== AUTOCOMPLETE SUGGESTIONS ================== */
 .suggestions {
   position: absolute;
   background: #37474f;
@@ -71,7 +108,8 @@ body, html {
   overflow-y: auto;
   display: none;
   z-index: 10001;
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.5);
+  width: 100%;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.5);
 }
 
 .suggestion-item {
@@ -83,7 +121,7 @@ body, html {
   background: #546e7a;
 }
 
-/* Emergency */
+/* ================== EMERGENCY ================== */
 #emergencyBtn {
   position: absolute;
   top: 70px;
@@ -96,7 +134,7 @@ body, html {
   cursor: pointer;
   z-index: 10000;
   font-weight: bold;
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+  box-shadow: 0 2px 6px rgba(0,0,0,0.3);
 }
 
 #emergencyTab {
@@ -105,9 +143,9 @@ body, html {
   left: 20px;
   width: 260px;
   max-height: 240px;
-  background: rgba(255, 255, 255, 0.97);
+  background: rgba(255,255,255,0.97);
   border-radius: 12px;
-  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+  box-shadow: 0 4px 10px rgba(0,0,0,0.3);
   padding: 12px;
   display: none;
   overflow-y: auto;
@@ -131,7 +169,7 @@ body, html {
   padding: 8px;
   border-radius: 12px;
   cursor: pointer;
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+  box-shadow: 0 2px 6px rgba(0,0,0,0.15);
   transition: 0.3s;
   font-weight: bold;
   font-size: 14px;
@@ -141,7 +179,7 @@ body, html {
   transform: scale(1.03);
 }
 
-/* Info panel */
+/* ================== INFO PANEL ================== */
 #infoPanel {
   position: absolute;
   bottom: 0;
@@ -153,7 +191,7 @@ body, html {
   padding: 12px;
   border-radius: 14px 14px 0 0;
   color: white;
-  box-shadow: 0 -4px 12px rgba(0, 0, 0, 0.25);
+  box-shadow: 0 -4px 12px rgba(0,0,0,0.25);
   z-index: 10000;
   display: none;
 }
@@ -164,14 +202,14 @@ body, html {
 
 #steps {
   margin-top: 8px;
-  background: rgba(255, 255, 255, 0.1);
+  background: rgba(255,255,255,0.1);
   padding: 8px;
   border-radius: 8px;
   max-height: 120px;
   overflow-y: auto;
 }
 
-/* Buttons */
+/* ================== VOICE, SOS, LOCATE BUTTONS ================== */
 #voiceCmdBtn {
   background: #009688;
   color: white;
@@ -181,11 +219,10 @@ body, html {
   background: #d32f2f;
 }
 
-/* My location */
 #locateBtn {
   position: absolute;
-  bottom: 80px;
-  right: 20px;
+  bottom: 10%;
+  right: 5%;
   background: #673ab7;
   color: white;
   border: none;
@@ -193,11 +230,10 @@ body, html {
   border-radius: 50%;
   cursor: pointer;
   z-index: 10000;
-  font-size: 18px;
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.4);
+  font-size: 30px;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.4);
 }
 
-/* SOS Button */
 #sosBtn {
   position: absolute;
   bottom: 100px;
@@ -211,7 +247,7 @@ body, html {
   border-radius: 50%;
   cursor: pointer;
   z-index: 10000;
-  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.4);
+  box-shadow: 0 4px 10px rgba(0,0,0,0.4);
   transition: transform 0.2s, background 0.3s;
 }
 
@@ -224,47 +260,45 @@ body, html {
   transform: scale(1.05);
 }
 
-/* Make My Location buttons small and inline with inputs */
+/* ================== SET LOCATION BUTTONS ================== */
 #setSourceBtn, #setDestBtn {
-  padding: 4px 6px;       /* smaller padding */
-  font-size: 12px;        /* smaller text */
-  margin-left: 5px;       /* small gap from input */
-  vertical-align: middle; /* align with input box */
-  border-radius: 4px;     /* slightly rounded */
+  padding: 4px 6px;
+  font-size: 12px;
+  margin-left: 5px;
+  vertical-align: middle;
+  border-radius: 4px;
   cursor: pointer;
 }
 
-/* Optional: different background color */
-#setSourceBtn {
-  background-color: #4CAF50; /* green */
-  color: white;
-  border: none;
-  
+#setSourceBtn { background-color: #4CAF50; color: white; border: none; }
+#setDestBtn { background-color: #f44336; color: white; border: none; }
+
+#setSourceBtn:hover, #setDestBtn:hover { opacity: 0.8; }
+
+/* ================== RESPONSIVE ================== */
+@media (max-width: 1024px) {
+  #topbar { flex-wrap: wrap; justify-content: space-between; }
+  .top-center { flex-wrap: wrap; gap: 6px; }
+  #topbar input, #topbar select, #topbar button { min-width: 120px; flex-grow: 1; padding: 6px; }
+  #infoPanel { width: 95%; max-width: 95%; }
+  #weatherPanel { width: 180px; margin-right: 15px; }
+  #emergencyTab { width: 90%; left: 50%; transform: translateX(-50%); }
+  #sosBtn, #locateBtn { font-size: 24px; padding: 8px; }
+  #emergencyBtn { font-size: 14px; padding: 8px 12px; top: 60px; }
 }
 
-#setDestBtn {
-  background-color: #f44336; /* red */
-  color: white;
-  border: none;
+@media (max-width: 600px) {
+  #topbar { flex-direction: column; align-items: flex-start; }
+  .top-center { width: 100%; justify-content: flex-start; margin: 5px 0; }
+  #topbar input, #topbar select, #topbar button { width: 100%; margin-bottom: 5px; }
+  #weatherPanel { width: 100%; justify-content: flex-start; margin-top: 5px; }
 }
 
-/* On hover */
-#setSourceBtn:hover, #setDestBtn:hover {
-  opacity: 0.8;
-}
-/* Small location buttons */
-#setSourceBtn, #setDestBtn, #locateBtn {
-  font-size: 0.9em;
-  padding: 3px 6px;
-  margin-left: 5px;
-}
-#weatherPanel {
-  position: absolute;
-  top: 90px;
-  left: 10px;
-  background: rgba(255,255,255,0.9);
-  padding: 10px;
-  border-radius: 5px;
-  z-index: 1000;
-  width: 200px;
+@media (max-width: 480px) {
+  #topbar input, #topbar select, #topbar button { font-size: 12px; padding: 5px; }
+  #coords { font-size: 12px; }
+  #weatherPanel { width: 160px; font-size: 12px; padding: 6px; }
+  #sosBtn, #locateBtn { font-size: 20px; padding: 6px; }
+  #emergencyTab { width: 95%; top: 70px; }
+  #emergencyBtn { font-size: 12px; padding: 6px 10px; }
 }
