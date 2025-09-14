@@ -343,3 +343,41 @@ body, html {
 .leaflet-control-attribution {
   display: none !important;
 }
+
+
+
+#floatingMenu {
+  position: fixed;
+  bottom: 20px;   /* below navbar */
+  right: 20px;
+  z-index: 9999;
+}
+#mainBtn {
+  font-size: 24px;
+  padding: 10px;
+  border-radius: 50%;
+  background: #007bff;
+  color: white;
+  border: none;
+  cursor: pointer;
+  box-shadow: 0px 3px 6px rgba(0,0,0,0.3);
+}
+#menuBtns {
+  display: none;
+  flex-direction: column;
+  margin-top: 10px;
+}
+#menuBtns .poiBtn {
+  margin-top: 5px;
+  font-size: 20px;
+  padding: 10px;
+  border-radius: 50%;
+  background: white;
+  border: 1px solid #ccc;
+  cursor: pointer;
+  box-shadow: 0px 2px 5px rgba(0,0,0,0.2);
+  transition: 0.2s;
+}
+#menuBtns .poiBtn:hover {
+  background: #f0f0f0;
+}
