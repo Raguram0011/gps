@@ -87,7 +87,7 @@ async function showRoute(traffic=false){
   if(currentRoute) map.removeControl(currentRoute);
 
   if(traffic){
-    const apiKey="YOUR_ORS_API_KEY"; // Replace with your OpenRouteService API key
+    const apiKey="YOUR_ORS_API_KEY"; // Replace with OpenRouteService API key
     const url=`https://api.openrouteservice.org/v2/directions/driving-car?api_key=${apiKey}&start=${sourceCoords[1]},${sourceCoords[0]}&end=${destCoords[1]},${destCoords[0]}`;
     const res=await fetch(url);
     const data=await res.json();
