@@ -16,22 +16,30 @@ function speak(text) {
 }
 
 // ================== GEOLOCATION ==================
+function updateUserLocation(lat, lng) {
+  if (!userMarker) {
+    userMarker = L.marker([lat, lng]).addTo(map).bindPopup("📍 You are here").openPopup();
+    map.setView([lat, lng], 15);
+    if (!sourceCoords) sourceCoords = [lat, lng];
+  } else {
+    userMarker.setLatLng([lat, lng]);
+  }
+  updateCurrentPointer(lat, lng);
+}
+
 if (navigator.geolocation) {
-  navigator.geolocation.watchPosition(pos => {
-    let lat = pos.coords.latitude,
-      lng = pos.coords.longitude;
-
-    if (!userMarker) {
-      map.setView([lat, lng], 14);
-      userMarker = L.marker([lat, lng]).addTo(map);
-      if (!sourceCoords) sourceCoords = [lat, lng];
-    } else {
-      userMarker.setLatLng([lat, lng]);
-    }
-
-    updateCurrentPointer(lat, lng);
-
-  }, err => console.error(err), { enableHighAccuracy: true });
+  navigator.geolocation.watchPosition(
+    pos => {
+      let lat = pos.coords.latitude,
+        lng = pos.coords.longitude;
+      updateUserLocation(lat, lng);
+    },
+    err => {
+      console.error("Geolocation error:", err);
+      alert("Unable to fetch GPS location. Please enable location services.");
+    },
+    { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
+  );
 }
 
 document.getElementById("locateBtn").onclick = () => {
@@ -161,12 +169,6 @@ document.getElementById("stopNavBtn").onclick = () => {
   }
 };
 
-// ================== LANGUAGE ==================
-document.getElementById("languageBtn").onclick = () => {
-  language = language === 'en-US' ? 'ta-IN' : 'en-US';
-  document.getElementById("languageBtn").textContent = language === 'en-US' ? 'Language: EN' : 'Language: TA';
-};
-
 // ================== EMERGENCY REAL-TIME ==================
 let emergencyInterval = null;
 async function fetchEmergencyPlaces(type, containerId) {
@@ -202,8 +204,6 @@ async function fetchEmergencyPlaces(type, containerId) {
       container.appendChild(div);
     });
 
-    addARMarkers(type, data.elements);
-
   } catch (e) {
     document.getElementById(containerId).innerHTML = `<p>Error fetching ${type}</p>`;
     console.error(e);
@@ -230,114 +230,108 @@ document.getElementById("emergencyBtn").onclick = () => {
 };
 
 document.getElementById("closeEmergencyBtn").onclick = () => {
-  document.getElementById("emergencyTab").style.display = 'none';
+  document.getElementById("emergencyTab").style.display = "none";
   if (emergencyInterval) clearInterval(emergencyInterval);
 };
 
-// ================== JACK VOICE ASSISTANT ==================
-let recognition = null, jackOn = false;
-
-if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
-  const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
-  recognition = new SR();
-  recognition.lang = 'en-US';
+// ================== VOICE COMMANDS ==================
+let recognizing = false;
+let recognition;
+if ('webkitSpeechRecognition' in window) {
+  recognition = new webkitSpeechRecognition();
+  recognition.lang = language;
   recognition.continuous = true;
+  recognition.interimResults = false;
 
-  const btn = document.getElementById("voiceCmdBtn");
-  btn.onclick = () => {
-    jackOn = !jackOn;
-    if (jackOn) {
-      btn.textContent = "🎤 Jack ON";
-      btn.classList.remove("off");
-      speak("Jack active");
-      recognition.start();
-    } else {
-      btn.textContent = "🎤 Jack OFF";
-      btn.classList.add("off");
-      speak("Jack off");
-      recognition.stop();
-    }
+  recognition.onstart = () => {
+    recognizing = true;
+    document.getElementById("voiceCmdBtn").classList.remove("off");
+    speak("Jack is now listening");
   };
-
+  recognition.onend = () => {
+    recognizing = false;
+    document.getElementById("voiceCmdBtn").classList.add("off");
+  };
   recognition.onresult = e => {
-    if (!jackOn) return;
-    const t = e.results[e.results.length - 1][0].transcript.toLowerCase();
-    if (!t.includes("jack")) return;
-
-    const intent = parseCommand(t);
-    if (!intent) return;
-
-    switch (intent.intent) {
-      case "start": showRoute(false); break;
-      case "stop": document.getElementById("stopNavBtn").click(); break;
-      case "set_source": setPlace(intent.place, true); break;
-      case "set_destination": setPlace(intent.place, false); break;
-      case "reroute":
-      case "traffic":
-        if (sourceCoords && destCoords) {
-          if (currentRoute) map.removeControl(currentRoute);
-          showRoute(true);
-        } else speak("Please set source and destination first");
-        break;
-      case "emergency": document.getElementById("emergencyBtn").click(); break;
-      case "find":
-        speak(`Finding nearest ${intent.type}`);
-        fetchEmergencyPlaces(intent.type, intent.type + "List");
-        break;
-      case "toggle_ar": document.getElementById("toggleAR").click(); break;
-      default: speak("Sorry, I did not understand"); break;
-    }
+    let transcript = e.results[e.results.length - 1][0].transcript.trim();
+    console.log("Voice:", transcript);
+    let cmd = parseCommand(transcript);
+    if (cmd) handleVoiceCommand(cmd);
   };
-
-  recognition.onend = () => { if (jackOn) recognition.start(); };
-} else {
-  document.getElementById("voiceCmdBtn").style.display = "none";
 }
 
-// ================== HELPER FUNCTIONS ==================
-async function setPlace(place, isSource) {
-  const url = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(place)}&limit=1`;
-  const res = await fetch(url);
-  const data = await res.json();
-
-  if (data.length > 0) {
-    const coords = [+data[0].lat, +data[0].lon];
-    if (isSource) {
-      sourceCoords = coords;
-      if (sourceMarker) map.removeLayer(sourceMarker);
-      sourceMarker = L.marker(coords, {
-        icon: L.icon({
-          iconUrl: 'https://maps.google.com/mapfiles/ms/icons/green-dot.png',
-          iconSize: [32, 32],
-          iconAnchor: [16, 32]
-        })
-      }).addTo(map);
-      speak(`Source set to ${place}`);
-    } else {
-      destCoords = coords;
-      if (destMarker) map.removeLayer(destMarker);
-      destMarker = L.marker(coords, {
-        icon: L.icon({
-          iconUrl: 'https://maps.google.com/mapfiles/ms/icons/red-dot.png',
-          iconSize: [32, 32],
-          iconAnchor: [16, 32]
-        })
-      }).addTo(map);
-      speak(`Destination set to ${place}`);
-    }
-  } else {
-    speak(`Could not find ${place}`);
-  }
-}
-
-// ================== AR TOGGLE ==================
-document.getElementById("toggleAR").onclick = () => {
-  let arContainer = document.getElementById("arContainer");
-  if (arContainer.style.display === "none") {
-    arContainer.style.display = "block";
-    speak("AR mode enabled");
-  } else {
-    arContainer.style.display = "none";
-    speak("AR mode disabled");
-  }
+document.getElementById("voiceCmdBtn").onclick = () => {
+  if (!recognition) { alert("Speech recognition not supported"); return; }
+  if (recognizing) recognition.stop();
+  else recognition.start();
 };
+
+async function handleVoiceCommand(cmd) {
+  switch (cmd.intent) {
+    case "start":
+      showRoute(false);
+      break;
+    case "stop":
+      if (currentRoute) {
+        map.removeControl(currentRoute);
+        currentRoute = null;
+        document.getElementById("infoPanel").style.display = 'none';
+        speak("Navigation stopped");
+      }
+      break;
+    case "set_source":
+      document.getElementById("source").value = cmd.place;
+      break;
+    case "set_destination":
+      document.getElementById("destination").value = cmd.place;
+      break;
+    case "reroute":
+      showRoute(false);
+      break;
+    case "emergency":
+      document.getElementById("emergencyBtn").click();
+      break;
+    case "find":
+      fetchEmergencyPlaces(cmd.type, cmd.type === "hospital" ? "hospitalList" : "policeList");
+      document.getElementById("emergencyTab").style.display = "block";
+      break;
+    case "traffic":
+      showRoute(true);
+      break;
+    default:
+      speak("Sorry, I did not understand");
+  }
+}
+
+// ================== SOS FEATURE ==================
+document.getElementById("sosBtn").addEventListener("click", async () => {
+  if (!navigator.geolocation) {
+    alert("Geolocation not supported by this browser.");
+    return;
+  }
+
+  navigator.geolocation.getCurrentPosition(
+    (position) => {
+      const lat = position.coords.latitude;
+      const lng = position.coords.longitude;
+
+      const msg = `🚨 SOS ALERT 🚨
+I need urgent help!
+📍 Location: https://maps.google.com/?q=${lat},${lng}`;
+
+      // 👉 Add all relatives' WhatsApp numbers (with country code, no +)
+      const relatives = ["919342991366", "919876543210"];
+
+      relatives.forEach((number, index) => {
+        setTimeout(() => {
+          window.open(`https://wa.me/${number}?text=${encodeURIComponent(msg)}`, "_blank");
+        }, index * 1000); // gap to avoid popup block
+      });
+    },
+    (err) => {
+      console.error("SOS location error:", err);
+      alert("Unable to fetch your location.");
+    },
+    { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
+  );
+});
