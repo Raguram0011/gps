@@ -30,8 +30,7 @@ function updateUserLocation(lat, lng) {
 if (navigator.geolocation) {
   navigator.geolocation.watchPosition(
     pos => {
-      let lat = pos.coords.latitude,
-        lng = pos.coords.longitude;
+      let lat = pos.coords.latitude, lng = pos.coords.longitude;
       updateUserLocation(lat, lng);
     },
     err => {
@@ -114,6 +113,37 @@ function setupAutocomplete(inputId, suggestionsId, isSource) {
 setupAutocomplete("source", "sourceSuggestions", true);
 setupAutocomplete("destination", "destinationSuggestions", false);
 
+// ================== SET SOURCE/DEST TO MY LOCATION ==================
+document.getElementById("setSourceBtn").onclick = () => {
+  if (!userMarker) { alert("Location not available yet"); return; }
+  const { lat, lng } = userMarker.getLatLng();
+  sourceCoords = [lat, lng];
+  document.getElementById("source").value = "My Location";
+  if (sourceMarker) map.removeLayer(sourceMarker);
+  sourceMarker = L.marker([lat, lng], {
+    icon: L.icon({
+      iconUrl: 'https://maps.google.com/mapfiles/ms/icons/green-dot.png',
+      iconSize: [32, 32],
+      iconAnchor: [16, 32]
+    })
+  }).addTo(map).bindPopup("Source: My Location").openPopup();
+};
+
+document.getElementById("setDestBtn").onclick = () => {
+  if (!userMarker) { alert("Location not available yet"); return; }
+  const { lat, lng } = userMarker.getLatLng();
+  destCoords = [lat, lng];
+  document.getElementById("destination").value = "My Location";
+  if (destMarker) map.removeLayer(destMarker);
+  destMarker = L.marker([lat, lng], {
+    icon: L.icon({
+      iconUrl: 'https://maps.google.com/mapfiles/ms/icons/red-dot.png',
+      iconSize: [32, 32],
+      iconAnchor: [16, 32]
+    })
+  }).addTo(map).bindPopup("Destination: My Location").openPopup();
+};
+
 // ================== ROUTING ==================
 async function showRoute(traffic = false) {
   if (!sourceCoords || !destCoords) { alert("Select source and destination"); return; }
@@ -168,6 +198,18 @@ document.getElementById("stopNavBtn").onclick = () => {
     speak("Navigation stopped");
   }
 };
+
+// ================== WEATHER ==================
+async function updateWeather(lat,lng){
+  const apiKey="d187c7aee8ac4f8f843200759251409"; // replace with your API key
+  try{
+    const res=await fetch(`https://api.openweathermap.org/data/2.5/weather?lat=${lat}&lon=${lng}&units=metric&appid=${apiKey}`);
+    const data=await res.json();
+    if(data){
+      document.getElementById("weatherInfo").innerHTML=`${data.name}, ${data.weather[0].description}, 🌡 ${data.main.temp}°C`;
+    }
+  }catch(err){ console.error("Weather error:",err); }
+}
 
 // ================== EMERGENCY REAL-TIME ==================
 let emergencyInterval = null;
@@ -280,10 +322,10 @@ async function handleVoiceCommand(cmd) {
       }
       break;
     case "set_source":
-      document.getElementById("source").value = cmd.place;
+      document.getElementById("setSourceBtn").click();
       break;
     case "set_destination":
-      document.getElementById("destination").value = cmd.place;
+      document.getElementById("setDestBtn").click();
       break;
     case "reroute":
       showRoute(false);
@@ -320,7 +362,7 @@ I need urgent help!
 📍 Location: https://maps.google.com/?q=${lat},${lng}`;
 
       // 👉 Add all relatives' WhatsApp numbers (with country code, no +)
-      const relatives = ["919342991366", "919876543210"];
+      const relatives = ["916381719256"];
 
       relatives.forEach((number, index) => {
         setTimeout(() => {
