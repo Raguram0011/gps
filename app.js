@@ -64,7 +64,7 @@ async function showRoute(traffic=false){
   if(currentRoute) map.removeControl(currentRoute);
 
   if(traffic){
-    const apiKey="YOUR_ORS_API_KEY"; // free key from openrouteservice.org
+    const apiKey="YOUR_ORS_API_KEY"; // Replace with OpenRouteService API key
     const url=`https://api.openrouteservice.org/v2/directions/driving-car?api_key=${apiKey}&start=${sourceCoords[1]},${sourceCoords[0]}&end=${destCoords[1]},${destCoords[0]}`;
     const res=await fetch(url);
     const data=await res.json();
@@ -107,7 +107,7 @@ document.getElementById("languageBtn").onclick=()=>{
   document.getElementById("languageBtn").textContent=language==='en-US'?'Language: EN':'Language: TA';
 };
 
-// ================== EMERGENCY & AR ==================
+// ================== EMERGENCY ==================
 async function fetchEmergencyPlaces(type, containerId){
   if(!userMarker){ document.getElementById(containerId).innerHTML="<p>Location not available</p>"; return; }
   const {lat,lng}=userMarker.getLatLng();
@@ -155,9 +155,11 @@ if('webkitSpeechRecognition' in window || 'SpeechRecognition' in window){
   };
   recognition.onresult=e=>{
     if(!jackOn) return;
-    const t=e.results[e.results.length-1][0].transcript;
+    const t=e.results[e.results.length-1][0].transcript.toLowerCase();
+    if(!t.includes("jack")) return;
     const intent=parseCommand(t);
     if(!intent) return;
+
     switch(intent.intent){
       case "start": showRoute(false); break;
       case "stop": document.getElementById("stopNavBtn").click(); break;
@@ -168,7 +170,7 @@ if('webkitSpeechRecognition' in window || 'SpeechRecognition' in window){
       case "find": speak(`Finding nearest ${intent.type}`); fetchEmergencyPlaces(intent.type,intent.type+"List"); break;
       case "traffic": showRoute(true); break;
       case "toggle_ar": document.getElementById("toggleAR").click(); break;
-      default: speak("Sorry, I did not understand");
+      default: speak("Sorry, I did not understand"); break;
     }
   };
   recognition.onend=()=>{ if(jackOn) recognition.start(); }
