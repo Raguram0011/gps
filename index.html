@@ -54,17 +54,24 @@
 <div id="floatingMenu">
   <button id="mainBtn">➕</button>
   <div id="menuBtns">
-    <button class="poiBtn" data-type="fuel">⛽</button>
-    <button class="poiBtn" data-type="hospital">🏥</button>
-    <button class="poiBtn" data-type="restaurant">🍴</button>
-    <button class="poiBtn" data-type="supermarket">🛒</button>
-    <button class="poiBtn" data-type="hotel">🏨</button>
-    <button class="poiBtn" data-type="police">🚓</button>
-    <button class="poiBtn" data-type="pharmacy">💊</button>
-    <button class="poiBtn" data-type="bank">🏦</button>
-    <button class="poiBtn" data-type="school">🎓</button>
-    <button class="poiBtn" data-type="park">🏖️</button>
+    <button class="poiBtn" data-type="fuel" title="Fuel Stations">⛽</button>
+    <button class="poiBtn" data-type="hospital" title="Hospitals">🏥</button>
+    <button class="poiBtn" data-type="restaurant" title="Restaurants">🍴</button>
+    <button class="poiBtn" data-type="supermarket" title="Supermarkets">🛒</button>
+    <button class="poiBtn" data-type="hotel" title="Hotels">🏨</button>
+    <button class="poiBtn" data-type="police" title="Police">🚓</button>
+    <button class="poiBtn" data-type="pharmacy" title="Pharmacies">💊</button>
+    <button class="poiBtn" data-type="bank" title="Banks / ATMs">🏦</button>
+    <button class="poiBtn" data-type="school" title="Schools">🎓</button>
+    <button class="poiBtn" data-type="park" title="Parks">🏖️</button>
   </div>
+</div>
+
+<!-- Results Side Panel -->
+<div id="resultsPanel">
+  <h2 id="resultsTitle">Nearby Places</h2>
+  <ul id="resultsList"></ul>
+  <button id="closeBtn" onclick="closePanel()">✖ Close</button>
 </div>
 
 <!-- Emergency -->
