@@ -429,3 +429,34 @@ async function handleVoiceCommand(cmd){
     default: console.log("Command not recognized:", cmd);
   }
 }
+
+map.on("click", async function(e) {
+  const lat = e.latlng.lat;
+  const lng = e.latlng.lng;
+
+  // Fetch weather for clicked location
+  try {
+    const resp = await fetch(
+      `https://api.weatherapi.com/v1/current.json?key=${WEATHER_API_KEY}&q=${lat},${lng}`
+    );
+    if (!resp.ok) throw new Error("Failed to fetch weather");
+    const data = await resp.json();
+
+    // Show popup with weather info
+    L.popup()
+      .setLatLng([lat, lng])
+      .setContent(`
+        🌍 Weather at clicked location:<br>
+        🌡️ ${data.current.temp_c}°C<br>
+        ☁️ ${data.current.condition.text}<br>
+        💨 Wind: ${data.current.wind_kph} km/h
+      `)
+      .openOn(map);
+  } catch (err) {
+    console.error(err);
+    L.popup()
+      .setLatLng([lat, lng])
+      .setContent("❌ Unable to fetch weather")
+      .openOn(map);
+  }
+});
