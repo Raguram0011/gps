@@ -28,7 +28,6 @@ function updateUserLocation(lat, lng) {
   updateWeather(lat, lng);
 }
 
-// Update weather every 60 seconds automatically
 setInterval(() => {
   if (userMarker) {
     const { lat, lng } = userMarker.getLatLng();
@@ -295,6 +294,8 @@ document.getElementById("closeEmergencyBtn").onclick = () => {
 // ================== VOICE COMMANDS ==================
 let recognizing = false;
 let recognition;
+let jackActivated = false;
+let jackListening = false;
 
 if ('webkitSpeechRecognition' in window) {
   recognition = new webkitSpeechRecognition();
@@ -302,37 +303,61 @@ if ('webkitSpeechRecognition' in window) {
   recognition.continuous = true;
   recognition.interimResults = false;
 
-  recognition.onstart = () => {
-    recognizing = true;
+  recognition.onresult = function (event) {
+    const transcript = event.results[event.results.length - 1][0].transcript.toLowerCase();
+    console.log("Heard:", transcript);
+
+    if (!jackActivated) return;
+
+    if (!jackListening) {
+      if (transcript.includes("jack")) {
+        jackListening = true;
+        speak("Yes, I am listening.");
+      }
+      return;
+    }
+
+    const cmd = parseCommand(transcript);
+    if (cmd) handleVoiceCommand(cmd);
+    else speak("Sorry, I didn’t understand.");
+  };
+}
+
+function parseCommand(transcript) {
+  transcript = transcript.toLowerCase();
+  if (transcript.includes("start")) return { intent: "start" };
+  if (transcript.includes("stop")) return { intent: "stop" };
+  if (transcript.includes("source")) return { intent: "set_source" };
+  if (transcript.includes("destination")) return { intent: "set_destination" };
+  if (transcript.includes("reroute")) return { intent: "reroute" };
+  if (transcript.includes("emergency")) return { intent: "emergency" };
+  if (transcript.includes("traffic")) return { intent: "traffic" };
+
+  const pois = ["fuel","hospital","restaurant","hotel","pharmacy","bank","school","park","supermarket","police"];
+  for (let poi of pois) if (transcript.includes(poi)) return { intent: "poi_search", type: poi };
+
+  return null;
+}
+
+document.getElementById("voiceCmdBtn").onclick = () => {
+  if (!recognition) { alert("Speech recognition not supported"); return; }
+
+  if (jackActivated) {
+    recognition.stop();
+    jackActivated = false;
+    jackListening = false;
+    const btn = document.getElementById("voiceCmdBtn");
+    btn.classList.add("off");
+    btn.textContent = "🎤 Jack OFF";
+    speak("Jack turned OFF");
+  } else {
+    recognition.start();
+    jackActivated = true;
     const btn = document.getElementById("voiceCmdBtn");
     btn.classList.remove("off");
     btn.textContent = "🎤 Jack ON";
     speak("Jack is ON");
-  };
-
-  recognition.onend = () => {
-    recognizing = false;
-    const btn = document.getElementById("voiceCmdBtn");
-    btn.classList.add("off");
-    btn.textContent = "🎤 Jack OFF";
-    speak("Jack Turned OFF");
-  };
-
-  recognition.onresult = e => {
-    let transcript = e.results[e.results.length - 1][0].transcript.trim();
-    console.log("Voice:", transcript);
-    let cmd = parseCommand(transcript);
-    if (cmd) handleVoiceCommand(cmd);
-  };
-}
-
-document.getElementById("voiceCmdBtn").onclick = () => {
-  if (!recognition) {
-    alert("Speech recognition not supported");
-    return;
   }
-  if (recognizing) recognition.stop();
-  else recognition.start();
 };
 
 async function handleVoiceCommand(cmd) {
@@ -350,21 +375,21 @@ async function handleVoiceCommand(cmd) {
     case "set_destination": document.getElementById("setDestBtn").click(); break;
     case "reroute": showRoute(false); break;
     case "emergency": document.getElementById("emergencyBtn").click(); break;
-    case "find":
-      fetchEmergencyPlaces(cmd.type, cmd.type === "hospital" ? "hospitalList" : "policeList");
-      document.getElementById("emergencyTab").style.display = "block";
-      break;
     case "traffic": showRoute(true); break;
+    case "poi_search":
+      speak(`Searching ${cmd.type}s within 10 kilometers.`);
+      let btn = document.querySelector(`.poiBtn[data-type="${cmd.type}"]`);
+      if (btn) btn.click();
+      else speak(`Sorry, I cannot search for ${cmd.type} right now.`);
+      break;
     default: speak("Sorry, I did not understand");
   }
 }
 
-// ================== SOS FEATURE (UNIFIED) ==================
+// ================== SOS FEATURE ==================
 const sosChannel = new BroadcastChannel('sos_channel');
-
 document.getElementById("sosBtn").addEventListener("click", async () => {
   if (!navigator.geolocation) { alert("Geolocation not supported"); return; }
-
   navigator.geolocation.getCurrentPosition((pos) => {
     const lat = pos.coords.latitude;
     const lng = pos.coords.longitude;
@@ -375,7 +400,6 @@ I need urgent help!
 📍 Location: https://maps.google.com/?q=${lat},${lng}
 Time: ${new Date(timestamp).toLocaleString()}`;
 
-    // 1️⃣ WhatsApp alert
     const relatives = ["919342991366"];
     relatives.forEach((number, index) => {
       setTimeout(() => {
@@ -383,12 +407,9 @@ Time: ${new Date(timestamp).toLocaleString()}`;
       }, index * 1000);
     });
 
-    // 2️⃣ Save to localStorage
     const sosLogs = JSON.parse(localStorage.getItem("sosLogs") || "[]");
     sosLogs.push({ lat, lng, timestamp });
     localStorage.setItem("sosLogs", JSON.stringify(sosLogs));
-
-    // 3️⃣ Broadcast to police.html
     sosChannel.postMessage({ lat, lng, timestamp });
 
     alert("SOS alert sent!");
@@ -414,40 +435,71 @@ if (navigator.geolocation) {
   });
 }
 
-
 // Toggle menu
 document.getElementById("mainBtn").addEventListener("click", () => {
   const menu = document.getElementById("menuBtns");
   menu.style.display = menu.style.display === "flex" ? "none" : "flex";
 });
 
-// Handle POI search
+// Close results panel
+function closePanel() {
+  document.getElementById("resultsPanel").classList.remove("active");
+}
+
+// Haversine distance
+function getDistance(lat1, lon1, lat2, lon2) {
+  const R = 6371;
+  const dLat = (lat2 - lat1) * Math.PI / 180;
+  const dLon = (lon2 - lon1) * Math.PI / 180;
+  const a = Math.sin(dLat/2)**2 + Math.cos(lat1*Math.PI/180)*Math.cos(lat2*Math.PI/180)*Math.sin(dLon/2)**2;
+  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+  return R * c;
+}
+
+// Handle POI search buttons
 document.querySelectorAll(".poiBtn").forEach(btn => {
   btn.addEventListener("click", () => {
     let type = btn.dataset.type;
-    if (!window.userMarker) {
-      alert("User location not found!");
-      return;
-    }
-
+    if (!window.userMarker) { alert("User location not found!"); return; }
     let userLatLng = window.userMarker.getLatLng();
-    let query = `[out:json];
-      node(around:10000, ${userLatLng.lat}, ${userLatLng.lng})[amenity=${type}];
-      out;`;
+    let query = `[out:json]; node(around:10000, ${userLatLng.lat}, ${userLatLng.lng})[amenity=${type}]; out;`;
 
-    fetch("https://overpass-api.de/api/interpreter", {
-      method: "POST",
-      body: query
-    })
-    .then(res => res.json())
-    .then(data => {
-      let count = data.elements.length;
-      let msg = `There are ${count} ${type}s within 10 kilometers.`;
-      alert(msg);
+    fetch("https://overpass-api.de/api/interpreter", { method: "POST", body: query })
+      .then(res => res.json())
+      .then(data => {
+        let count = data.elements.length;
+        let msg = `I found ${count} ${type}s within 10 kilometers.`;
+        speechSynthesis.speak(new SpeechSynthesisUtterance(msg));
 
-      // Voice output
-      let speech = new SpeechSynthesisUtterance(msg);
-      speechSynthesis.speak(speech);
-    });
+        let resultsList = document.getElementById("resultsList");
+        resultsList.innerHTML = "";
+        data.elements.forEach(el => {
+          let name = el.tags && el.tags.name ? el.tags.name : `${type} (unknown name)`;
+          let dist = getDistance(userLatLng.lat, userLatLng.lng, el.lat, el.lon).toFixed(2);
+          let li = document.createElement("li");
+          li.textContent = `${name} - ${dist} km away`;
+          li.addEventListener("click", () => {
+            if (window.routingControl) map.removeControl(window.routingControl);
+            window.routingControl = L.Routing.control({
+              waypoints: [L.latLng(userLatLng.lat, userLatLng.lng), L.latLng(el.lat, el.lon)],
+              routeWhileDragging: true
+            }).addTo(map);
+            closePanel();
+          });
+          resultsList.appendChild(li);
+        });
+        document.getElementById("resultsTitle").textContent = `Nearby ${type}s`;
+        document.getElementById("resultsPanel").classList.add("active");
+      });
   });
-}); 
+});
+
+// Initial user location
+function success(position) {
+  const lat = position.coords.latitude;
+  const lng = position.coords.longitude;
+  window.userMarker = L.marker([lat, lng]).addTo(map).bindPopup("You are here").openPopup();
+  map.setView([lat, lng], 14);
+}
+if (!navigator.geolocation) alert("Geolocation is not supported by your browser");
+else navigator.geolocation.getCurrentPosition(success, () => alert("Unable to retrieve your location"));
