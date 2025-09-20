@@ -1,0 +1,175 @@
+body, html {
+  margin: 0;
+  padding: 0;
+  font-family: 'Poppins', sans-serif;
+  background: #0d1117;
+  color: #fff;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+header {
+  background: linear-gradient(135deg, #1e3c72, #2a5298);
+  color: #fff;
+  padding: 20px;
+  text-align: center;
+  font-size: 26px;
+  font-weight: bold;
+  letter-spacing: 1px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.5);
+  position: relative;
+}
+header button {
+  position: absolute;
+  right: 20px;
+  top: 20px;
+  background: #ff9800;
+  border: none;
+  padding: 8px 14px;
+  border-radius: 6px;
+  font-weight: bold;
+  cursor: pointer;
+}
+.dashboard {
+  display: flex;
+  flex: 1;
+  gap: 15px;
+  padding: 15px;
+}
+.leftPanel {
+  flex: 0.4;
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+#statusChart {
+  background: rgba(255,255,255,0.05);
+  border-radius: 12px;
+  padding: 10px;
+  box-shadow: 0 4px 15px rgba(0,0,0,0.6);
+}
+#sosContainer {
+  background: rgba(255,255,255,0.05);
+  border-radius: 12px;
+  padding: 15px;
+  box-shadow: 0 4px 15px rgba(0,0,0,0.6);
+  overflow-y: auto;
+  max-height: 65vh;
+  position: relative;
+}
+#sosContainer h2 {
+  margin: 0 0 15px 0;
+  font-size: 20px;
+  color: #ffcc00;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.sosItem {
+  background: rgba(255,255,255,0.08);
+  margin: 10px 0;
+  padding: 12px;
+  border-radius: 8px;
+  transition: transform 0.2s;
+}
+.sosItem:hover {
+  transform: scale(1.02);
+  background: rgba(255,255,255,0.15);
+}
+.sosItem a {
+  color: #4fc3f7;
+  font-weight: bold;
+  text-decoration: none;
+}
+.statusBtn {
+  margin: 5px 3px;
+  padding: 5px 8px;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 12px;
+  font-weight: bold;
+  color: white;
+}
+.pending { background: #d32f2f; }
+.progress { background: #fbc02d; color: #000; }
+.resolved { background: #388e3c; }
+.deleteBtn {
+  background: #555;
+  border: none;
+  padding: 6px 10px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: bold;
+  color: white;
+  font-size: 12px;
+  margin-top: 5px;
+}
+#map {
+  flex: 0.6;
+  border-radius: 12px;
+  box-shadow: 0 4px 15px rgba(0,0,0,0.6);
+}
+.leaflet-control-attribution { display: none !important; }
+#historyModal {
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: rgba(0,0,0,0.7);
+  display: none;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+}
+#historyContent {
+  background: #1e1e1e;
+  padding: 20px;
+  border-radius: 12px;
+  width: 700px;
+  max-height: 80vh;
+  overflow-y: auto;
+  box-shadow: 0 4px 15px rgba(0,0,0,0.6);
+  position: relative;
+}
+.closeBtn {
+  background: red;
+  border: none;
+  color: white;
+  padding: 6px 12px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: bold;
+}
+.downloadBtn {
+  background: #4caf50;
+  border: none;
+  color: white;
+  padding: 6px 12px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: bold;
+  margin: 10px 0;
+}
+.historyItem {
+  background: rgba(255,255,255,0.08);
+  margin: 10px 0;
+  padding: 10px;
+  border-radius: 6px;
+}
+.deleteHistoryBtn {
+  background: #ff4444;
+  border: none;
+  padding: 4px 8px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: bold;
+  color: white;
+  font-size: 12px;
+  margin-top: 5px;
+}
+
+.sosItem .policeStation {
+    margin-top: 6px;
+    font-style: italic;
+    color: #81d4fa; /* same as your theme accent */
+    font-size: 14px;
+}
